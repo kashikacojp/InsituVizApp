@@ -1,0 +1,18 @@
+Time, Frame, FILE
+0,0,output_000000_000000.jpg,
+1,1,output_000010_999999.jpg,
+2,2,output_000020_999999.jpg,
+3,3,output_000030_999999.jpg,
+4,4,output_000040_999999.jpg,
+4,5,output_000050_999999.jpg,
+4,6,output_000060_999999.jpg,
+5,7,output_000070_999999.jpg,
+5,8,output_000080_999999.jpg,
+5,9,output_000090_999999.jpg,
+6,10,output_000100_999999.jpg,
+7,11,output_000110_999999.jpg,
+8,12,output_000120_999999.jpg,
+8,13,output_000130_999999.jpg,
+8,14,output_000140_999999.jpg,
+9,15,output_000150_999999.jpg,
+10,16,output_000160_999999.jpg
