@@ -1,52 +1,87 @@
 <template>
-  <div>
+  <div class="component">
     <h1>{{ title }}</h1>
     <div>
-      <img :src="files[tmslider]" @mousemove="imgMouseMove" @mousedown="imgMouseDown" @mouseup="imgMouseUp" @contextmenu="(e)=>{ e.preventDefault() }">
+      <img :src="files(tmslider)"
+       @mousemove="imgMouseMove"
+       @mousedown="imgMouseDown"
+       @mouseup="imgMouseUp"
+       @contextmenu="(e)=>{ e.preventDefault() }"
+       class="imagecomp">
     </div>
     <div>
       <div class="yoko">
-        <p>Time</p>
-        <progress id="prog" :max="maxtime" :value="times[tmslider]" class="slider"></progress>
-        <p>{{ times[tmslider] }}</p>
+        <p class="txt">Time</p>
+        <progress id="prog" :max="maxtime" :value="times(tmslider)" class="slider"></progress>
+        <p class="txt">{{ times(tmslider) }}</p>
       </div>
       <div class="yoko">
-        <p>Frame</p>
-        <input type="range" :max="files.length - 1" step="1" v-model="tmslider" class="slider">
-        <p>{{ tmslider }}</p>
-        <button @click="playbutton">{{ pbutton }}</button>
-        <button @click="speedbutton">x{{ speed }}</button>
+        <p class="txt">Frame</p>
+        <input type="range" :max="datum.length - 1" step="1" v-model="tmslider" class="slider">
+        <p class="txt">{{ tmslider }}</p>
+        <button class="btn" @click="playbutton">{{ pbutton }}</button>
+        <button class="btn" @click="speedbutton">x{{ speed }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-//import VueTypes from 'vue-types'
 
 export default {
   name: 'InsituViz',
   props: {
     title: String,
-    src: String //VueTypes.string.isRequired.def('')
+    src: String
   },
   data() {
     return {
       "tmslider": 0,
-      "files": [],
-      "times": [],
+      "singlefiles": [],
+      "multifiles": [],
       "maxtime": 0,
       "pbutton": "Play",
       "timeid": null,
-      "speed": 1
+      "speed": 1,
+      "mousedrag": false
+    }
+  },
+  computed: {
+    datum() {
+      if (this.multifiles.length > 0) {
+        return this.multifiles
+      } else if (this.singlefiles.length > 0) {
+        return this.singlefiles
+      } else {
+        return []
+      }
     }
   },
   methods: {
     init()
     {
-      this.times.length = 0
-      this.files.length = 0
+      this.singlefiles.length = 0
+      this.multifiles.length = 0
       this.maxtime = 0
+      this.mousedrag = false
+    },
+    files(i) {
+      if (this.multifiles.length > 0) {
+        return this.multifiles[i].file
+      } else if (this.singlefiles.length > 0) {
+        return this.singlefiles[i].file
+      } else {
+        return ""
+      }
+    },
+    times(i) {
+      if (this.multifiles.length > 0) {
+        return this.multifiles[i].time
+      } else if (this.singlefiles.length > 0) {
+        return this.singlefiles[i].time
+      } else {
+        return 0
+      }
     },
     loadData(srccsv) {
       var spl = srccsv.split("/")
@@ -68,27 +103,34 @@ export default {
         const rowsRaw = CSVRaw.slice(endOfFirstLineIndex + 1);
         const rowsNoCells = rowsRaw.split("\n");
         const rows = rowsNoCells.map(row => row.split(","));
-        var i
+        var i, tm
         if (headers.length == 3) { // single: Time,Frame,FILE
           for (i in rows){
             //console.log(rows[i][0])
             if (rows[i][0] && rows[i][2]) {
-              this.times.push(parseInt(rows[i][0]) | 0)
-              this.files.push(srcpath + '/' + rows[i][2])
+              tm = parseInt(rows[i][0]) | 0
+              this.singlefiles.push({
+                "time": tm,
+                "file": srcpath + '/' + rows[i][2]
+              })
+              this.maxtime = Math.max(this.maxtime, tm)
             }
           }
         } else { // multi: Time,Frame,r,Phi,Theta,FILE
           for (i in rows){
               //console.log(rows[i][0])
               if (rows[i][0] && rows[i][5]) {
-                this.times.push(parseInt(rows[i][0]) | 0)
-                this.files.push(srcpath + '/' + rows[i][5])
+                tm = parseInt(rows[i][0]) | 0
+                this.multifiles.push({
+                  "time": tm,
+                  "theta": parseInt(rows[i][3]),
+                  "phi": parseInt(rows[i][4]),
+                  "file": srcpath + '/' + rows[i][5]
+                })
+                this.maxtime = Math.max(this.maxtime, tm)
               }
             }
         }
-
-        const aryMax = function (a, b) { return Math.max(a, b) }
-        this.maxtime = this.times.reduce(aryMax);
         console.log("max time:" + this.maxtime)
       })
       .catch(error => {
@@ -108,22 +150,14 @@ export default {
     },
     speedbutton()
     {
-      if (this.speed == 1) {
-        this.speed = 2
-      } else if (this.speed == 2) {
-        this.speed = 4
-      } else if (this.speed == 4) {
-        this.speed = 8
-      } else if (this.speed == 8) {
-        this.speed = 16
-      } else if (this.speed == 16) {
-        this.speed = 32
-      } else if (this.speed == 32) {
-        this.speed = 64
-      } else {
-        this.speed = 1
+      var speeds = [1,2,4,8,16,32,64],
+          i = 0
+      speeds.push(speeds[0]) // terminate
+      while (this.speed != speeds[i]) {
+        i++
       }
-
+      this.speed = speeds[i+1]
+      
       if (this.timeid != null) {
         this.play()
       }
@@ -133,7 +167,7 @@ export default {
       if (this.timeid == null) {
         this.timeid = setInterval(()=>{
           var x = parseInt(this.tmslider) + 1
-          if (x > this.files.length - 1) {
+          if (x > this.datum.length - 1) {
             x = 0
           }
           this.tmslider = x
@@ -152,15 +186,21 @@ export default {
     },
     imgMouseMove(event)
     {
-      console.log(event.offsetX, event.offsetY)
+      if (this.mousedrag) {
+        console.log(event.offsetX, event.offsetY)
+      }
     },
     imgMouseDown(event)
     {
+      this.mousedrag = true
       console.log(event.button)
       event.preventDefault()
     },
     imgMouseUp(event)
     {
+      this.mousedrag = false
+      console.log(event.button)
+     
       event.preventDefault()
     }
 
@@ -175,6 +215,14 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.component {
+  margin: 0px;
+  max-width: 512px;
+  width: 100%;
+}
+.imagecomp {
+  width: 100%;
+}
 .slider {
   width: 250px;
   margin-top: 20px;
@@ -194,8 +242,18 @@ li {
 a {
   color: #42b983;
 }
+.txt {
+  margin-left: 5px;
+  margin-right: 5px;
+  width: 50px;
+}
+.btn {
+  width: 40px;
+}
 .yoko {
   flex-direction: row;
   display: flex;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 </style>
