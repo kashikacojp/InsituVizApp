@@ -1,10 +1,10 @@
 <template>
   <div class="center">
     <div class="wrap">
-      <InsituVizApp title="Single" src="/data/single/data.csv"/>
-      <InsituVizApp title="CameraPath" src="/data/CameraPath/data.csv"/>
-      <InsituVizApp title="CameraFocus" src="/data/CameraFocus/data.csv"/>
-      <InsituVizApp title="Multi" src="/data/multi2/data.csv"/>
+      <InsituVizApp title="Single" src="data/single/data.csv"/>
+      <InsituVizApp title="CameraPath" src="data/CameraPath/data.csv"/>
+      <InsituVizApp title="CameraFocus" src="data/CameraFocus/data.csv"/>
+      <InsituVizApp title="Multi" src="data/multi2/data.csv"/>
     </div>
 </div>
 </template>
