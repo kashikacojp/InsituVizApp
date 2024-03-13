@@ -14,6 +14,7 @@
         <p class="txt">Time</p>
         <progress id="prog" :max="maxtime" :value="times(tmslider)" class="slider"></progress>
         <p class="txt">{{ times(tmslider) }}</p>
+        <p v-if="multifiles.length > 0">phi={{ multifiles[tmslider].data[rotindex].phi }} <br> theta={{ multifiles[tmslider].data[rotindex].theta }}</p>
       </div>
       <div class="yoko">
         <p class="txt">Frame</p>
@@ -37,6 +38,7 @@ export default {
   data() {
     return {
       "tmslider": 0,
+      "rotindex": 0,
       "singlefiles": [],
       "multifiles": [],
       "maxtime": 0,
@@ -67,7 +69,7 @@ export default {
     },
     files(i) {
       if (this.multifiles.length > 0) {
-        return this.multifiles[i].file
+        return this.multifiles[i].data[this.rotindex].file
       } else if (this.singlefiles.length > 0) {
         return this.singlefiles[i].file
       } else {
@@ -121,13 +123,30 @@ export default {
               //console.log(rows[i][0])
               if (rows[i][0] && rows[i][5]) {
                 tm = parseInt(rows[i][0]) | 0
-                this.multifiles.push({
-                  "time": tm,
-                  "theta": parseInt(rows[i][3]),
-                  "phi": parseInt(rows[i][4]),
-                  "file": srcpath + '/' + rows[i][5]
-                })
-                this.maxtime = Math.max(this.maxtime, tm)
+                var frame = parseInt(rows[i][1]) | 0
+                // 
+                // specification: counts of (frame == time) and frame is continue number
+                // if not match: (slow)
+                //  var f = this.multifiles.findIndex((e)=> { return e.time == tm })
+                //  if (f >= 0) {
+                if (frame < this.multifiles.length) { // fast check
+                  this.multifiles[frame].data.push({
+                    "theta": parseInt(rows[i][3]),
+                    "phi": parseInt(rows[i][4]),
+                    "file": srcpath + '/' + rows[i][5]
+                  })
+                } else {
+                  this.multifiles.push({
+                    "time": tm, "data":[]
+                  })
+                  this.multifiles[frame].data.push({
+                    "theta": parseInt(rows[i][3]),
+                    "phi": parseInt(rows[i][4]),
+                    "file": srcpath + '/' + rows[i][5]
+                  })
+                  this.maxtime = Math.max(this.maxtime, tm)
+                }
+                
               }
             }
         }
@@ -184,23 +203,82 @@ export default {
         this.timeid = null
       }
     },
+    nextRotfile(phi_offset, theta_offset) {
+      var lst = this.multifiles[this.tmslider].data
+      // make phi/theta list
+      var philst = [], thetalst = []
+      for (var i in lst) { 
+        if (philst.indexOf(lst[i].phi) < 0) {
+          philst.push(lst[i].phi)
+        }
+        if (thetalst.indexOf(lst[i].theta) < 0) {
+          thetalst.push(lst[i].theta)
+        }
+      }
+      philst.sort((a,b)=>{ return a < b })
+      thetalst.sort((a,b)=>{ return a < b })
+      // serch next phi/theta
+      var cphi = lst[this.rotindex].phi
+      var ctheta = lst[this.rotindex].theta
+      var pidx = philst.indexOf(cphi)
+      var tidx = thetalst.indexOf(ctheta)
+      var loop = 0
+      while (loop < 5) { // if not uniform 
+        pidx += phi_offset
+        tidx += theta_offset
+        if (pidx >= philst.length) {
+          pidx = 0
+        } else if (pidx < 0) {
+          pidx = philst.length - 1
+        }
+        if (tidx >= thetalst.length) {
+          tidx = 0
+        } else if (tidx < 0) {
+          tidx = thetalst.length - 1
+        }
+        // find match phi/theta index
+        var r = lst.findIndex((e) => { return e.phi == philst[pidx] && e.theta == thetalst[tidx] })
+        if (r >= 0) {
+          this.rotindex = r
+          break;
+        }
+        loop++
+      }
+      return this.rotindex
+    },
     imgMouseMove(event)
     {
+      if (this.multifiles.length == 0)
+        return
+
       if (this.mousedrag) {
-        console.log(event.offsetX, event.offsetY)
+        var dx = event.offsetX - this.mx
+        var dy = event.offsetY - this.my
+        var change = false
+        if(Math.abs(dx) > 20) {
+          this.rotindex = this.nextRotfile(Math.sign(dy), 0)
+          change = true
+        }
+        if (Math.abs(dy) > 20) {
+          this.rotindex = this.nextRotfile(0, -Math.sign(dy))
+          change = true
+        }
+        if (change) {
+          this.mx = event.offsetX
+          this.my = event.offsetY
+        }
       }
     },
     imgMouseDown(event)
     {
       this.mousedrag = true
-      console.log(event.button)
+      this.mx = event.offsetX
+      this.my = event.offsetY
       event.preventDefault()
     },
     imgMouseUp(event)
     {
       this.mousedrag = false
-      console.log(event.button)
-     
       event.preventDefault()
     }
 
