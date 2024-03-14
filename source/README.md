@@ -27,7 +27,15 @@ npm run serve
 npm run build
 ```
 - このコマンドで、WEBサーバーに配置するためのファイル群が生成されます。(distフォルダ)
-- サーバーには、distフォルダ一式をアップロードしてください。
+- サーバーには、distフォルダの中身一式をアップロードしてください。
+- 大量のファイルのCSVを表示したい場合は、ビルドした後のdistフォルダにファイルを格納し、確認してください。
+- アップロード前にローカルで動作確認したい場合、http-serverをつかうと便利です。
+  - $npm install -g http-server
+  - $cd dist/
+  - $http-server
+  - ACCESS: http://localhost:8080
+  - <数万枚あるcsvの場合も、動作確認済み>
+
 
 ### フォルダ構成
 

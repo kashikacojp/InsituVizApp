@@ -13,3 +13,11 @@ Insitu-visualization app
 
 - "source/README.md" を参照
 
+## github pageの更新方法
+
+現在はdocsフォルダ一式を公開する設定になっています。
+別のブランチ一式で設定する方法もあります。
+自由に変更することができます。
+
+
+アップロード・公開すべきファイル群は、sourceの中でビルドすることで生成されます。詳しくは source/README.mdを参照してください。
