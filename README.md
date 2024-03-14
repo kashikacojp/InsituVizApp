@@ -2,13 +2,14 @@
 
 Insitu-visualization app
 
+## フォルダ構造
 
-## How to use
+- docs: githubpage 公開用のディレクトリ
+  - 現在は4つのデータを表示するサンプルを作成
 
-- put data "/dist/data/data.csv"
-- open git pages URL
+- source: ソースコード一式
 
-## Project build
+## 使いかた/ビルド方法
 
-- See source directory
+- "source/README.md" を参照
 

@@ -1,10 +1,13 @@
 <template>
-  <div class="center">
+  <div>
     <div class="wrap">
+      <InsituVizApp title="My Data" src="data/data.csv"/>
+      <!-- [github page sample]
       <InsituVizApp title="Single" src="data/single/data.csv"/>
       <InsituVizApp title="CameraPath" src="data/CameraPath/data.csv"/>
       <InsituVizApp title="CameraFocus" src="data/CameraFocus/data.csv"/>
       <InsituVizApp title="Multi" src="data/multi/data.csv"/>
+      -->
     </div>
 </div>
 </template>
@@ -21,10 +24,6 @@ export default {
 </script>
 
 <style>
-.center {
-  /*display: flex;*/
-  /* TODO center */
-}
 .wrap {
   display: flex;
   flex-wrap: wrap;
